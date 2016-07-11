@@ -28,17 +28,46 @@ class RequestHandler:
         либо okdp либо okpd
         :param regnum:
         :param args:
-        :return:
+        :return: :list список контрактов
         """
         classcode = list(kwargs.keys())[0]
         req = ''.join([RequestHandler.request_string, regnum, '&', classcode, '=', kwargs[classcode]])
         res = requests.get(req)
 
-        return res.json()
+        return res.json()['contracts']['data']
 
-    def run_everything(self):
-        pass
+    def result_to_contracts(self, result):
+        """
+        извлечь нужные данные
+        :return:
+        """
+        contracts = {}
+        for contract in result:
+            # номер контракта
+            contracts['conum'] = contract["regNum"]
+            # дата подписания
+            contracts['signed'] = contract["signDate"]
+            # стоимость
+            contracts['price'] = contract["price"]
+            # предмет контракта
+            contracts['product'] = contract["products"][0]["name"]
+            # заказчик
+            contracts['customer'] = contract["customer"]["fullName"]
+            # инн заказчика
+            contracts['customer_inn'] = contract["customer"]["inn"]
+            # исполнитель
+            contracts['supplname'] = contract["suppliers"][0]["organizationName"]
+            # инн исполнителя
+            contracts['supplinn'] = contract["suppliers"][0]["inn"]
+            # орг форма исполнителя
+            contracts['supplform'] = contract["suppliers"][0]["legalForm"]["singularName"]
 
+        return contracts
 
 my_handler = RequestHandler()
 test_result = my_handler.send_request('48', okpd='92.40.10.111')
+print(test_result)
+
+for i in test_result['data']:
+    print(i)
+# print(test_result['data'])
