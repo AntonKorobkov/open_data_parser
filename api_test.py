@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import requests
-import pandas as pd
 
 res = requests.get('http://openapi.clearspending.ru/restapi/v3/contracts/select/?customerregion=48&okpd=92.40.10.111')
 if res.ok:
@@ -16,9 +15,6 @@ class RequestHandler:
     """
 
     request_string = 'http://openapi.clearspending.ru/restapi/v3/contracts/select/?customerregion='
-
-    def __init__(self):
-        self.response = {}
 
     def send_request(self, regnum, **kwargs):
         """
@@ -60,14 +56,17 @@ class RequestHandler:
             # инн исполнителя
             contracts['supplinn'] = contract["suppliers"][0]["inn"]
             # орг форма исполнителя
-            contracts['supplform'] = contract["suppliers"][0]["legalForm"]["singularName"]
+            contracts['supplform'] = contract["suppliers"][0]
 
         return contracts
 
+    def main(self, regnum, **kwargs):
+        response = self.send_request(regnum, **kwargs)
+        return self.result_to_contracts(response)
+
+
 my_handler = RequestHandler()
-test_result = my_handler.send_request('48', okpd='92.40.10.111')
+test_result = my_handler.main('48', okpd='92.40.10.111')
 print(test_result)
 
-for i in test_result['data']:
-    print(i)
 # print(test_result['data'])
