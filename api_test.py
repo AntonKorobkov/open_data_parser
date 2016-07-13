@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import requests
+import pandas as pd
 
 res = requests.get('http://openapi.clearspending.ru/restapi/v3/contracts/select/?customerregion=48&okpd=92.40.10.111')
 if res.ok:
@@ -15,6 +16,9 @@ class RequestHandler:
     """
 
     request_string = 'http://openapi.clearspending.ru/restapi/v3/contracts/select/?customerregion='
+
+    def __init__(self):
+        self.all_contracts = []
 
     def send_request(self, regnum, **kwargs):
         """
@@ -37,36 +41,53 @@ class RequestHandler:
         извлечь нужные данные
         :return:
         """
-        contracts = {}
-        for contract in result:
+        # может быть более одного продукта и более
+        # одного поставщика
+
+        contracts = []
+        for record in result:
+
+            contract = {}
+            prodnum = len(record["products"])
+
             # номер контракта
-            contracts['conum'] = contract["regNum"]
+            contract['conum'] = record["regNum"]
             # дата подписания
-            contracts['signed'] = contract["signDate"]
+            contract['signed'] = record["signDate"]
             # стоимость
-            contracts['price'] = contract["price"]
-            # предмет контракта
-            contracts['product'] = contract["products"][0]["name"]
+            contract['price'] = record["price"]
+            # предмет контракта, если их более одного,
+            # они идут в одну ячейку
+            contract['product'] = '; '.join([record["products"][num]["name"] for num in range(prodnum)])
             # заказчик
-            contracts['customer'] = contract["customer"]["fullName"]
+            contract['customer'] = record["customer"]["fullName"]
             # инн заказчика
-            contracts['customer_inn'] = contract["customer"]["inn"]
-            # исполнитель
-            contracts['supplname'] = contract["suppliers"][0]["organizationName"]
+            contract['customer_inn'] = record["customer"]["inn"]
+            # исполнитель (берем первого)
+            contract['supplname'] = record["suppliers"][0]["organizationName"]
             # инн исполнителя
-            contracts['supplinn'] = contract["suppliers"][0]["inn"]
-            # орг форма исполнителя
-            contracts['supplform'] = contract["suppliers"][0]
+            contract['supplinn'] = record["suppliers"][0]["inn"]
+            # орг форма исполнителя, определена не для всех
+            try:
+                contract['supplform'] = record["suppliers"][0]["legalForm"]["code"]
+            except KeyError:
+                contract['supplform'] = 'Not defined'
+
+            contracts.append(contract)
 
         return contracts
 
+
     def main(self, regnum, **kwargs):
+        # TODO: refactor
         response = self.send_request(regnum, **kwargs)
-        return self.result_to_contracts(response)
+        for contr in response:
+            self.all_contracts.append(contr)
+
 
 
 my_handler = RequestHandler()
 test_result = my_handler.main('48', okpd='92.40.10.111')
-print(test_result)
+print(my_handler.all_contracts)
 
 # print(test_result['data'])
