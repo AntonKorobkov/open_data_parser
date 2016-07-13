@@ -2,6 +2,7 @@
 
 import requests
 import pandas as pd
+import threading
 
 res = requests.get('http://openapi.clearspending.ru/restapi/v3/contracts/select/?customerregion=48&okpd=92.40.10.111')
 if res.ok:
@@ -80,14 +81,22 @@ class RequestHandler:
 
     def main(self, regnum, **kwargs):
         # TODO: refactor
-        response = self.send_request(regnum, **kwargs)
+        response = self.result_to_contracts(self.send_request(regnum, **kwargs))
         for contr in response:
             self.all_contracts.append(contr)
 
+    def write_to_excel(self):
+
+        frame = pd.DataFrame(self.all_contracts)
+        writer = pd.ExcelWriter('pandas_simple.xlsx', engine='xlsxwriter')
+        frame.to_excel(writer, sheet_name='Contracts')
+        writer.save()
 
 
 my_handler = RequestHandler()
-test_result = my_handler.main('48', okpd='92.40.10.111')
-print(my_handler.all_contracts)
+
+my_handler.main('48', okpd='92.40.10.111')
+my_handler.write_to_excel()
+
 
 # print(test_result['data'])
