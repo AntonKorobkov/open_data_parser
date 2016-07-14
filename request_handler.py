@@ -2,7 +2,6 @@
 
 import requests
 import pandas as pd
-import threading
 
 res = requests.get('http://openapi.clearspending.ru/restapi/v3/contracts/select/?customerregion=48&okpd=92.40.10.111')
 if res.ok:
@@ -52,20 +51,22 @@ class RequestHandler:
             prodnum = len(record["products"])
 
             # номер контракта
-            contract['conum'] = record["regNum"]
+            contract['Номер контракта'] = record["regNum"]
+            # номер региона
+            contract['Номер региона'] = record["regionCode"]
             # дата подписания
-            contract['signed'] = record["signDate"]
+            contract['Дата подписи'] = record["signDate"]
             # стоимость
-            contract['price'] = record["price"]
+            contract['Стоимость контракта'] = record["price"]
             # предмет контракта, если их более одного,
             # они идут в одну ячейку
-            contract['product'] = '; '.join([record["products"][num]["name"] for num in range(prodnum)])
+            contract['Предмет'] = '; '.join([record["products"][num]["name"] for num in range(prodnum)])
             # заказчик
-            contract['customer'] = record["customer"]["fullName"]
+            contract['Заказчик'] = record["customer"]["fullName"]
             # инн заказчика
-            contract['customer_inn'] = record["customer"]["inn"]
+            contract['ИНН заказчика'] = record["customer"]["inn"]
             # исполнитель (берем первого)
-            contract['supplname'] = record["suppliers"][0]["organizationName"]
+            contract['Поставщик'] = record["suppliers"][0]["organizationName"]
             # инн исполнителя
             contract['supplinn'] = record["suppliers"][0]["inn"]
             # орг форма исполнителя, определена не для всех
@@ -85,18 +86,18 @@ class RequestHandler:
         for contr in response:
             self.all_contracts.append(contr)
 
-    def write_to_excel(self):
+    def write_to_excel(self, filepath):
 
         frame = pd.DataFrame(self.all_contracts)
-        writer = pd.ExcelWriter('pandas_simple.xlsx', engine='xlsxwriter')
-        frame.to_excel(writer, sheet_name='Contracts')
+        writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
+        frame.to_excel(writer, sheet_name='Contracts', index=False)
         writer.save()
 
 
-my_handler = RequestHandler()
 
-my_handler.main('48', okpd='92.40.10.111')
-my_handler.write_to_excel()
+if __name__ == "__main__":
+    my_handler = RequestHandler()
+    my_handler.main('48', okpd='92.40.10.111')
+    my_handler.main('47', okpd='92.40.10.111')
+    my_handler.write_to_excel('pandas_simple.xlsx')
 
-
-# print(test_result['data'])
