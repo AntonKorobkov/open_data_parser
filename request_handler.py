@@ -3,10 +3,6 @@
 import requests
 import pandas as pd
 
-res = requests.get('http://openapi.clearspending.ru/restapi/v3/contracts/select/?customerregion=48&okpd=92.40.10.111')
-if res.ok:
-    print(res.json())
-
 
 class RequestHandler:
     """
