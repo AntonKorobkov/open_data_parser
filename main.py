@@ -18,7 +18,7 @@ handler = RequestHandler()
 
 for regnum in connection_data["regions"]:
     for okpd in connection_data["okpds"]:
-        handler.main('48', okpd=okpd)
+        handler.main(regnum, okpd=okpd)
 
 handler.write_to_excel('pandas_simple.xlsx')
 
