@@ -64,12 +64,13 @@ class RequestHandler:
             # исполнитель (берем первого)
             contract['Поставщик'] = record["suppliers"][0]["organizationName"]
             # инн исполнителя
-            contract['supplinn'] = record["suppliers"][0]["inn"]
+            contract['ИНН поставщика'] = record["suppliers"][0]["inn"]
             # орг форма исполнителя, определена не для всех
+            # TODO: декодировать
             try:
-                contract['supplform'] = record["suppliers"][0]["legalForm"]["code"]
+                contract['Орг. форма поствщика'] = record["suppliers"][0]["legalForm"]["code"]
             except KeyError:
-                contract['supplform'] = 'Not defined'
+                contract['Орг. форма поствщика'] = 'Not defined'
 
             contracts.append(contract)
 
