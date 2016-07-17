@@ -21,4 +21,3 @@ for regnum in connection_data["regions"]:
         handler.main(regnum, okpd=okpd)
 
 handler.write_to_excel('pandas_simple.xlsx')
-
